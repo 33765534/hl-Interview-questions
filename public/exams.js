@@ -2,77 +2,29 @@ const splitA = "---------------------------------------";
 function title(t) {
   return splitA + t + splitA;
 }
- const exams = [
+const exams = [
   {
     type: "项目",
     content: [
       {
         question: "项目难题性能优化",
-        answer: `1. 星云平台这个项目是关联内部和开源的代码仓库,主要功能有漏洞分析,组件依赖追溯,缺陷预警,日志分析等功能,我这边负责日志分析模块,这个模块是对接内部日志系统,
-用来对日志文件进行上传分析,可疑事件对筛选,事件序列的可视化展示,并产出日志分析质量报告,这个项目之所以有挑战性,
-是因为我在里面除了负责日常页面模块的开发还付出了大量的时间和精力做性能优化这块,这块的性能优化是我在做所有的项目里面涉及的知识点最多做的最细的一个项目,
-里面有很多的遇到的坑啊,包括很多的调试手法啊,这边的话我都记忆蛮深刻的
-
-3. 用户对于我们的页面性能是要求比较高的,里面有多种图表拖拽和切换转换,每个图表的数据量是比较大的,要进行性能优化,我们性能优化的 测量标准 主要参考
-web vitals(健康网站关键指标):
-FCP(first-contenful-paint 1.8s)绘制出首个文本或首张图片的时间,
-LCP(Largest Contentful Paint 2.5s)绘制出最大文本或图片的时间,
-CLS(Cumulative Layout Shift 0.1)累计布局偏移 可见元素在视口内的移动情况,
-SI(speed-index 3.4s)网页可见内容的填充速度
-TBT(total-blocking-time 200ms)任务超过50ms时首次内容绘制(FCP)和用户可交互时间(TTI)的总和
-
-TTI(time-to-interactive 2.5s)用户与网页可交互的时间
-FID(Fisrt Input delay 100ms)首次响应用户交互时间
-FMP(First Meaningful Paint)首次有意义内容绘制时间(页面主要内容对用户的可见时间)
-
-这些指标可以通过开发者工具lighthouse面版对页面进行跑分,在生成的 报告 中的都会给出,也可以通过performance API
-performance.getEntries() void:performanceNavigationTiming对象 精确到ns // 只能在当前点分析,如果在onload之后要
-采集性能指标(额外的dom,动画要加载),就采集不到
-
-如果想要在onload后采集性能指标 可以借助 performanceObserver 进行性能监听
-let observer = new PerformanceObserver(observer_cb)
-observer.observe({entryTypes: ['paint','resource','mark']})
-window.performance.mark('own') // 手动打点测试
-
-当然除了上面的指标,通过performance.timing中可以收集domComplete加载完成时间,domainLookupEnd DNS查找时间,这个api精准到ms,
-
-4. 还会给出修改建议: 延长缓存时间;缩减资源文件大小,推迟下载不必要的资源;保持较低的请求数量和较小的传输大小
+        answer: `在华为应用市场付费推广这个项目中，除了负责日常页面模块的开发还付出了大量的时间和精力做性能优化
+首先加载性能上的优化：1.路由懒加载 2.打包文件去掉map文件
+2.图片懒加载
+还会给出修改建议: 延长缓存时间;缩减资源文件大小,推迟下载不必要的资源;保持较低的请求数量和较小的传输大小
 减少网络请求
 对打包后资源进行分析
 大图片进行压缩,小图片使用svg,图片懒加载
 使用HTTP缓存,长期不变的静态文件使用强缓存
-
-gzip压缩
-打包通过compresion-webpack-plugin和 nignx 服务器开启 gzip 压缩
+3.使用cdn加速（如果可以按需引入减少所占空间，不能按需的采用CDN外部加载）(vue axios echarts通过配置webpack的externals不打包,真的放到内部CDN引入)
+4.使用 gzip 打包压缩，减少文件体积(打包通过compresion-webpack-plugin和 nignx 服务器开启 gzip 压缩)
+5.使用 Service Worker 进行缓存，提升加载速度 6.使用 keep-alive 缓存组件，减少重复渲染 7.预渲染，依赖 prerender-spa-plugin
+8.防抖节流，减少用户反复点击 9.用户体验上的优化：（1.骨架屏 2.loading 3.使用动画提升用户体验 4.使用 PWA）
 
 使用http2.0
 http2.0大幅提升了加载性能，相比http1.0增加了多路复用、二进制分帧、header压缩等特性
 开启了https协议，只要在Nginx配置文件中找到你要开启http2.0的域名server模块，
-然后将 listen 443 ssl;改成 listen 443 ssl http2; 即可。
-
-CDN加速
-vue axios echarts通过配置webpack的externals不打包,真的放到内部CDN引入
-
-5. 页面属于一个一个模块,在概览页面添加了有50个图表,并且50个图表的模块是可以相互的拖拽的改变位置和宽高信息,
-页面的渲染和交互是一大性能瓶颈,当时'Awe-dnd库',来进行拖拽时,我发现拖拽会卡顿在2s左右我就觉得非常的奇怪,
-因为官方库提供的demo显示了即使有几百个数据量也不可能像这样的卡顿
-
-当时就怀疑了是不是我的每一个这个拖拽卡片里面的东西承载的数据量太大了,它里面可能有柱状图,饼状图,拆线图各种各样面积堆叠图还涉及到表格的数据切换,
-每一个echarts的函数是由我进行了一些递归计算针对不同的数据结构来展示的,我就去模拟了同样数据结构用demo示例进行了拖拽,发现在demo上不会出现卡顿的,
-这个时候我就不太知道到底是什么原因了,这个其实就是我说的有挑战性和难点的地方
-
-我只能开启chrome devtool的performance面版,来去帮我做一些性能定位,大概我的做法就是,打开performance,选择录制操作我的拖拽等一系列操作,
-停止录制后,就能看到性能表现了,首先看到的是network网络,frames框架,animation动画,timings时间,interactions交互,但我最长看的还是main,
-它记录了所有的大小事件,我最关注的是带红色三角的long task,我选择对应的long task,可以在底部的详情面板,选择bottom-up,可以看到long task的排序, 
-我发现了一个'handleDrag'函数用时长达1.5秒的我觉得这个很不正常,因为在js计算中能达到1.几秒的可能进入一个长列表的循环或者一个大的数据结构,
-我就点击到了源码映射,打断点进行一步步调试分析,最后发现这个'handleDrag'个函数真正需要的是单个面板的参数,我直接把整个接口返回的data传了进去,
-导致每次拖拽卡顿,
-
-我传改了参数,在进行录制分析拖拽动作,发现long task也消失了,拖拽流畅,
-
-整个调试过程中我也学到了很多,也为自己日后的对于这种无法定位或者觉得百思不得其解问题,performance面板一定要好好的使用,
-当然除了我今天用到的像main,bottom-up,call-tree,里面还有非常多好用的东西,比如常用的web vitals指标,memory内存面板我都有丰富的调试和使用经验,
-包括日后我再遇到类似问题,或者公司做极致性能优化,我会熟练使用lighthouse和performance各种性能定位的方法`,
+然后将 listen 443 ssl;改成 listen 443 ssl http2; 即可。`,
       },
       {
         question: "组件封装",
@@ -529,8 +481,8 @@ ${title("iOS 上视频播放 video 标签时间轴不显示")}
 我这边就把这种可能会延期或做不完的工作解决了,这种跨组或部门在
 工作中经常发生,涉及到不到组或部门的沟通问题,这次他帮助我们,等下次他们有工作量,我们也会派组员帮助他们.
 我作为这边一个前端小组长,对于这种跨组或部门的问题,我这边也是有经验,可以沟通好的
-`
-      }
+`,
+      },
     ],
   },
   {
@@ -1072,10 +1024,10 @@ Fragments
 Fragments 的出现，让 Vue3 一个组件可以有多个根节点（Vue2 一个组件只允许有一个根节点）
 因为虚拟DOM是单根树形结构的，patch 方法在遍历的时候从根节点开始遍历，这就要求了只有一个根节点；
 而 Vue3 允许多个根节点，就是因为引入了 Fragment，这是一个抽象的节点，如果发现组件是多根的，就会创建一个 Fragment 节点，将多根节点作为它的 children`,
-},
-{
-  question:'Vuex',
-  answer:`
+      },
+      {
+        question: "Vuex",
+        answer: `
 Vuex 的状态存储是响应式的。当 Vue 组件从 store 中读取状态的时候，若 store 中的状态发生变化，那么相应的组件也会相应地得到高效更新。
 改变 store 中的状态的唯一途径就是显式地提交 (commit) mutation。这样可以方便地跟踪每一个状态的变化
 export default new Vuex.Store({
@@ -1112,21 +1064,139 @@ Vuex 和 localStorage 的区别
 1. vuex 存储在内存中, localstorage存储在本地，只能存储字符串类型的数据
 2. 刷新页面时 Vuex 存储的值会丢失，localstorage 不会。
 3. Vuex里面定义数据是有响应式的,可以追踪数据的变化
-  `
-}
+  `,
+      },
+      {
+        question: "渲染劫持",
+        answer: `渲染劫持的概念是控制组件从另外一个组件输出的能力
+在高阶组件中，组合渲染和条件渲染都是渲染劫持的一种，
+通过反向继承不仅可以实现以上两点，还可以增强由原组件render函数产生的react元素
+实际的操作中通过操作 state,props 都可以实现渲染劫持
+        `
+      },
+      
     ],
   },
   {
     type: "JS",
     content: [
       {
-        question: "原型链",
+        question: "深/浅拷贝",
         answer: `
-原型: 对象中固有的__proto__属性，该属性指向其构造函数的prototype原型属性。
+  浅拷贝（藕断丝连）
+  结构赋值 [...arr] 一维数组对象是深拷贝，多维是浅拷贝
+  Object.assign() 浅拷贝
+  1.JSON.parse(JSON.stringify()) 无法拷贝函数
+  2.递归方式实现深拷贝
+  3.lodash库的cloneDeep()
+  4.jquery的$.extend实现深拷贝
+        `
+      },
+      {
+        question: "数据类型和原型链",
+        answer: `
+基本数据类型（原始类型）：undefined、null、boolean、number、string、symbol
+引用数据类型：object （arry、function、data）
 
-原型链: 当我们访问一个对象的属性时，如果这个对象内部不存在这个属性，那么它就会去它的原型对象里找，这个原型对象又会有自己的原型，于是就这样一直找下去，
-也就是原型链的概念。原型链的尽头一般来说都是Object.prototype所以这就是我们新建的对象为什么能够使用toString()等方法的原因。
+原型: 
+prototype(显示原型)只有函数对象才有的属性（箭头函数没有）指向函数的原型对象
+__proto__(隐式原型)指向创建当前对象的函数的prototype,每个对象都有的属性（除了null）
+
+原型链: 对象在查找属性时，如果找不到就会沿着__proto__(隐式原型)去它的原型上找，直到找到顶层null为止
 特点: JavaScript对象是通过引用来传递的，我们创建的每个新对象实体中并没有一份属于自己的原型副本。当我们修改原型时，与之相关的对象也会继承这一改变。`,
+      },
+      {
+        question: "闭包",
+        answer: `
+闭包是指有权访问另一个函数作用域中变量的函数，创建闭包的最常见的方式就是在一个函数内创建另一个函数，创建的函数可以访问到当前函数的局部变量。
+
+用途:
+1.保护私有变量：模块化中可以防止外部代码直接访问和修改
+2.实现数据封装：可以创建类似于面向对象的对象实例，通过闭包来访问和操作
+3.实现回调函数：在异步操作完后执行回调函数
+4.实现函数工厂：创建定制函数，可以生成特定行为或者配置
+在函数外部能够访问到函数内部的变量。通过使用闭包，可以通过在外部调用闭包函数，从而在外部访问到函数内部的变量，可以使用这种方法来创建私有变量。
+使已经运行结束的函数上下文中的变量对象继续留在内存中，因为闭包函数保留了这个变量对象的引用，所以这个变量对象不会被回收
+封装对象的私有属性和私有方法
+
+缺点:
+由于闭包会使得函数中的变量都被保存在内存中，内存消耗很大，所以不能滥用闭包，否则会造成网页的性能问题，在IE中可能导致内存泄露`,
+      },
+      {
+        question: "Promise",
+        answer: `
+ Promise（承诺、规范） 的出现是为了统一js中的异步实现方案，提供统一的 API，各种异步操作都可以用同样的方法进行处理
+
+有三种状态：pending（进行中）、fulfilled（已成功）和rejected（已失败）。
+一旦状态改变，就不会再变，任何时候都可以得到这个结果。Promise对象的状态改变，只有两种可能：从pending变为fulfilled和从pending变为rejected。
+new Promise((resolve,reject)=>{}) 调用resolve()成功，调用reject()失败
+resolve不同值的区别
+1.普通值会作为then回调的参数
+2.Promise值会觉得当前Promise的状态
+3.对象实现then方法，会根据then方法的结果决定Promise的状态
+Promise.resolve用法相当于new Promise并执行resolve页区分三种不同值
+reject不区分三种不同值，都走catch
+
+Promise.All （按照数组顺序返回，有一个失败直接返回）
+多个实例同时运行,状态由实例结果决定，分成两种情况。
+全部成功状态都变成fulfilled状态才会变成fulfilled
+只要有一个被rejected，状态就变成rejected。
+
+Promise.allSettled()
+一组异步操作都结束了，不管每一个操作是成功还是失败，再进行下一步操作
+
+Promise.race()竞技/竞赛,先返回就用水的状态（成功/失败）
+如果不是 Promise 实例，就会先调用下面讲到的Promise.resolve()方法，将参数转为 Promise 实例
+只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，就传递给p的回调函数
+
+Promise.any()至少等一个成功返回，如果全部失败会返回一个new合计错误
+只要参数实例有一个变成fulfilled状态，包装实例就会变成fulfilled状态；如果所有参数实例都变成rejected状态，包装实例就会变成rejected状态
+
+Promise.resolve()
+转成fulfilled状态的实例
+
+Promise.reject()
+转成rejected状态的实例`,
+      },
+      {
+        question: "异步解决方案async/await",
+        answer: `
+异步解决方案:回调函数、Promise、Generator（迭代器）、async/await
+Generator（迭代器）：function* 关键字声明，并在需要时使用 yield 关键字返回一个值(箭头函数不能使用Generator)
+
+async/await 其实是Generator 的语法糖，它能实现的效果都能用 then 链来实现，它是为优化 then链而开发出来的
+async 用于申明一个 function 是异步的，而 await 用于等待一个异步方法执行完成
+async 函数返回的是一个 Promise 对象。如果return 一个直接量，async 通过 Promise.resolve() 封装成 Promise 对象
+
+优势
+代码读起来更加同步，Promise 虽然摆脱了回调地狱，但是 then 的链式调⽤也会带来额外的阅读负担
+Promise 传递中间值⾮常麻烦，⽽ async/await ⼏乎是同步的写法，⾮常优雅
+错误处理友好，async/await 可以⽤成熟的 try/catch，Promise 的错误捕获⾮常冗余
+调试友好，Promise 的调试很差，由于没有代码块，你不能在⼀个返回表达式的箭头函数中设置断点，如果你在⼀个.then 代码块中使⽤调试器的步进(step-over)功能，
+调试器并不会进⼊后续的.then 代码块，因为调试器只能跟踪同步代码的每⼀步
+
+try-catch进行异常捕获
+async function fn(){
+  try{
+      let a = await Promise.reject('error')
+  }catch(error){
+      console.log(error)
+  }
+}`,
+      },
+      {
+        question: "this指向",
+        answer: `
+默认绑定：window 函数独立调用（闭包、setTimeout中的this默认指向window）
+
+隐式绑定：包含在对象中，方法调用，this隐式绑定该对象(obj.fn())
+
+显式绑定：call(obj,arg1,arg2)，apply(obj,[arg1,arg2])，bind 返回新绑定this的函数  
+
+new绑定： 构建函数内部返回对象，this指向对象，否则指向实例
+
+箭头函数没有this，指向外层函数的作用域，箭头函数不允许被作为构造函数
+`,
       },
       {
         question: "箭头函数",
@@ -1148,7 +1218,7 @@ promise
 箭头函数
 async await
 展开运算符, 解构赋值
-let 和 const
+let 和 const(和var的区别：不存在变量提升、同一个作用域下不能重复定义、有严格的块作用域)
 set 和 map
 proxy
 symbol
@@ -1194,43 +1264,8 @@ toString()---把数组转换为字符串，并返回结果。
 lastIndexOf()---返回一个指定的字符串值最后出现的位置，在一个字符串中的指定位置从后向前搜索。
 map()---通过指定函数处理数组的每个元素，并返回处理后的数组。
 slice()---选取数组的的一部分，并返回一个新数组。
-valueOf()---返回数组对象的原始值。`,
-      },
-      {
-        question: "闭包",
-        answer: `
-闭包是指有权访问另一个函数作用域中变量的函数，创建闭包的最常见的方式就是在一个函数内创建另一个函数，创建的函数可以访问到当前函数的局部变量。
-
-用途:
-在函数外部能够访问到函数内部的变量。通过使用闭包，可以通过在外部调用闭包函数，从而在外部访问到函数内部的变量，可以使用这种方法来创建私有变量。
-使已经运行结束的函数上下文中的变量对象继续留在内存中，因为闭包函数保留了这个变量对象的引用，所以这个变量对象不会被回收
-封装对象的私有属性和私有方法
-
-缺点:
-由于闭包会使得函数中的变量都被保存在内存中，内存消耗很大，所以不能滥用闭包，否则会造成网页的性能问题，在IE中可能导致内存泄露`,
-      },
-      {
-        question: "async/await",
-        answer: `
-async/await 其实是Generator 的语法糖，它能实现的效果都能用 then 链来实现，它是为优化 then链而开发出来的
-async 用于申明一个 function 是异步的，而 await 用于等待一个异步方法执行完成
-async 函数返回的是一个 Promise 对象。如果return 一个直接量，async 通过 Promise.resolve() 封装成 Promise 对象
-
-优势
-代码读起来更加同步，Promise 虽然摆脱了回调地狱，但是 then 的链式调⽤也会带来额外的阅读负担
-Promise 传递中间值⾮常麻烦，⽽ async/await ⼏乎是同步的写法，⾮常优雅
-错误处理友好，async/await 可以⽤成熟的 try/catch，Promise 的错误捕获⾮常冗余
-调试友好，Promise 的调试很差，由于没有代码块，你不能在⼀个返回表达式的箭头函数中设置断点，如果你在⼀个.then 代码块中使⽤调试器的步进(step-over)功能，
-调试器并不会进⼊后续的.then 代码块，因为调试器只能跟踪同步代码的每⼀步
-
-try-catch进行异常捕获
-async function fn(){
-  try{
-      let a = await Promise.reject('error')
-  }catch(error){
-      console.log(error)
-  }
-}`,
+valueOf()---返回数组对象的原始值。
+reduce(callback,initvalue)---接收一个函数作为累加器，callback第一个参数上次的结果，第二个当前元素，第三个索引，第四个数组对象`,
       },
       {
         question: "对象继承",
@@ -1252,17 +1287,6 @@ async function fn(){
 这样就避免了创建不必要的属性`,
       },
       {
-        question: "this指向",
-        answer: `
-默认绑定：window
-
-隐式绑定：包含在对象中，方法调用，this隐式绑定该对象
-
-显式绑定：call，apply，bind修改this指向
-
-new绑定： 构建函数内部返回对象，this指向对象，否则指向实例`,
-      },
-      {
         question: "new操作符",
         answer: `
 首先创建了一个新的空对象
@@ -1274,7 +1298,19 @@ new绑定： 构建函数内部返回对象，this指向对象，否则指向实
 判断函数的返回值类型，如果是值类型，返回创建的对象。如果是引用类型，就返回这个引用类型的对象`,
       },
       {
-        question: "Pxory/defineProp",
+        question: "npm、npx、nvm",
+        answer: `
+1.npm 是node.js官网提供的包管理工具
+2.cnpm淘宝团队做的国内镜像包管理工具，每10分钟同步一次
+3.npx是执行npm依赖包的二进制
+4.yarn 为了弥补npm5.0之前的缺陷而出现的包管理工具
+5.pnpm 运行非常快，超过了npm和yarn
+6.nvm管理node版本
+7.nrm 切换npm源管理器
+        `
+      },
+      {
+        question: "Pxory/defineProperty",
         answer: `
 Proxy是ES6中的方法，Proxy用于创建一个目标对象的代理，在对目标对象的操作之前提供了拦截，可以对外界的操作进行过滤和改写，这样我们可以不直接操作对象本身，
 而是通过操作对象的代理对象来间接来操作对象；
@@ -1295,6 +1331,20 @@ Proxy 的一些方法要求返回 true/false 来表示操作是否成功，比�
 之前的诸多接口都定义在 Object 上，历史问题导致这些接口越来越多越杂，所以干脆都挪到 Reflect 新接口上，目前是13种标准行为，可以预期后续新增的接口也会放在这里；`,
       },
       {
+        question: "事件冒泡、捕获",
+        answer: `
+1.事件冒泡的事件流从内而外去触发事件
+2.事件捕获的事件流从外而内触发
+3.addEventListener(event,function,useCapture)第三个参数默认false为冒泡事件，true事件捕获
+4.先捕获再冒泡
+5.事件委托：利用冒泡的原理，当多个元素需要绑定事件可使用事件委托给父级添加事件函数，例：li标签
+6.取消冒泡事件
+  event.stopPropagetion()
+event.preventDefault()阻止默认行为
+不能使用冒泡的事件：scroll、mouseleave、blur、change
+`
+      },
+      {
         question: "Map/Set",
         answer: `
 set 和 weakSet 区别
@@ -1313,37 +1363,10 @@ Map 和 普通Obejct的区别
 过去通常用object实现，但是obj只能用字符串作为key，有很大限制，所以出现map，支持任意类型作为key；`,
       },
       {
-        question: "Promise",
+        question: "iframe优缺",
         answer: `
- Promise 是异步编程的一种解决方案，比传统的解决方案——回调函数和事件——更合理和更强大
-所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。
-Promise 提供统一的 API，各种异步操作都可以用同样的方法进行处理。
-
-Promise对象有以下两个特点。
-有三种状态：pending（进行中）、fulfilled（已成功）和rejected（已失败）。只有异步操作的结果，可以决定当前是哪一种状态，任何其他操作都无法改变这个状态。
-一旦状态改变，就不会再变，任何时候都可以得到这个结果。Promise对象的状态改变，只有两种可能：从pending变为fulfilled和从pending变为rejected。
-如果改变已经发生了，你再对Promise对象添加回调函数，也会立即得到这个结果。这与事件（Event）完全不同，事件的特点是，如果你错过了它，再去监听，是得不到结果的
-
-Promise.All
-多个实例同时运行,状态由实例结果决定，分成两种情况。
-全部成功状态都变成fulfilled状态才会变成fulfilled
-只要有一个被rejected，状态就变成rejected。
-
-Promise.race()
-如果不是 Promise 实例，就会先调用下面讲到的Promise.resolve()方法，将参数转为 Promise 实例
-只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，就传递给p的回调函数
-
-Promise.allSettled()
-一组异步操作都结束了，不管每一个操作是成功还是失败，再进行下一步操作
-
-Promise.any()
-只要参数实例有一个变成fulfilled状态，包装实例就会变成fulfilled状态；如果所有参数实例都变成rejected状态，包装实例就会变成rejected状态
-
-Promise.resolve()
-转成fulfilled状态的实例
-
-Promise.reject()
-转成rejected状态的实例`,
+优:代码模块化，跨域通信，独立性里面样式和js不影响外面
+缺:加载速度慢、SEO不由好、安全问题、很多移动端兼容性差、浏览器后退按钮无效`
       },
       {
         question: "JSBridge",
@@ -1413,6 +1436,49 @@ result = [uiWebview stringByEvaluatingJavaScriptFromString:javaScriptString];
     type: "CSS",
     content: [
       {
+        question: "水平剧中",
+        answer: `
+        方法1：margin和和width实现
+        在容器上定义一个固定的宽度，然后配合margin 左右的值为auto。
+        优点：实现简单，浏览器兼容性强
+        缺点：效果实现了，扩展性不强，因为宽度无法确定，也就无法确定容器宽度。
+        方法2：inline-block和父元素text-align
+        元素的父容器中设置text-align的属性为“center”，子类设置display:inline-block
+        优点：简单易懂，扩展性强
+        缺点：需要额外处理inline-block的浏览器兼容性问题
+        方法三：设置 position:relative 和 left:50%;
+        父元素设置 float，然后给父元素设置 position:relative 和 left:50%,给子元素设置 position:relative 和 left:-50% 来实现水平居中。
+        `,
+      },
+      {
+        question: "水平垂直剧中",
+        answer: `
+        方法1：text-align + line-height实现单行文本水平垂直居中
+        text-align: center
+        
+        方法2：text-align + vertical-align
+        文字：在父元素设置text-align和vertical-align，并将父元素设置为table-cell元素，子元素设置为inline-block元素
+        子元素是图片：
+        可不使用table-cell，而是其父元素用行高替代高度，且字体大小设为0。子元素本身设置vertical-align:middle
+        
+        方法三：margin + vertical-align(垂直对齐)
+        要想在父元素中设置vertical-align，须设置为table-cell元素；要想让margin:0 auto实现水平居中的块元素内容撑开宽度，须设置为table元素。而table元素是可以嵌套在tabel-cell元素里面的，就像一个单元格里可以嵌套一个表格
+
+        方法4：使用absolute 绝对定位
+         1.利用绝对定位元素的盒模型特性，在偏移属性为确定值的基础上，设置margin:auto
+         2.利用绝对定位元素的偏移属性和translate(-50%，-50%)函数的自身偏移达到水平垂直居中的效果
+         3.在子元素宽高已知的情况下，可以配合margin负值达到水平垂直居中效果
+
+        方法5：使用flex
+         1.在伸缩项目上使用margin:auto
+         2.在伸缩容器上使用主轴对齐justify-content和侧轴对齐align-items
+        
+        方法6：使用grid
+         1.在网格项目中设置justify-self、align-self或者margin:  auto
+         2.在网格容器上设置justify-items、align-items或justify-content、align-content
+        `,
+      },
+      {
         question: "自适应布局",
         answer: `
 ## 视口布局
@@ -1420,6 +1486,12 @@ result = [uiWebview stringByEvaluatingJavaScriptFromString:javaScriptString];
 rem + flex
 
 vw, vh, vmin, vmax
+
+自适应正方形
+1.width:50%;height:50vw; // 1vw=1% viewoart width
+2.width:50%;height:0;padding-bottom:100% // 垂直方向的padding撑开容器（padding百分比是分局块的width来去欸顶的就是父元素的width）
+3.双层嵌套，父类div:position:relativd;padding-top:100%;height:0;width:50%
+子类：position:absolute;width:100%;height:100%';top:0;left:0
 
 width 单位
 // 计算方法
@@ -1476,6 +1548,21 @@ CSS -> SASS -> BEM -> CSS Modules -> Styled Components
 
 > 大佬博客  css-tricks.com ishadeed.com
 `,
+      },
+      {
+        question: "图文样式line-height如何继承",
+        answer: `body{
+          font-size:20px;
+          line-height:200%;
+        }
+        p{
+          font-size:16px;
+        }
+        问P的行高多少？20px*200%=40px
+        1.如果line-height是数字，则继承该值
+        2.如果是1.5那就是16*1.5=24px
+        3.如果写了百分比，则继承计算出来的值
+        `
       },
       {
         question: "选择器优先级",
@@ -2110,7 +2197,7 @@ Demo:
     ],
   },
   {
-    type: "计网",
+    type: "网络协议",
     content: [
       {
         question: "HTTP缓存",
@@ -2448,11 +2535,28 @@ HTTPS握手
     ],
   },
   {
-    type: "浏理",
+    type: "浏览器",
     content: [
+      {
+        question: "浏览器渲染",
+        answer: `
+        www.baidu.com > dns(域名解析)>找到ip服务器地址 > 解析返回一个html > 解析html 遇到css/js文件 下载到浏览器中，然后浏览器开始渲染页面
+
+  浏览器内核又可以分成两部分：渲染引擎(layout engineer或Rendering Engine)和JS引擎
+
+  渲染引擎：
+  拿到HTML 浏览器内核的 HTML Parser 会将html解析成Dom tree ,
+以及拿到 Style Sheets 浏览器会进行 CSS Parser将css解析成的 Style rules(css规则) > Attachment(附加)结合在一起>生成Render tree渲染树 >painting(绘制)>Display展示
+
+JS引擎：
+js代码 > Parse(解析成 词法分析 和 语法分析) > AST(抽象语法树) > lgnition(解释器/转化器) >  生成bytecode字节码（不直接转成机器代码是因为可能JS跑的环境不同所以产生的机器代码也不同，如可能跑在Mac浏览器，window浏览器或Linux）> 机器代码(汇编码) > CPU运行结果
+
+`,
+      },
       {
         question: "浏览器多线程",
         answer: `
+
 GUI渲染线程：负责渲染浏览器界面，包括解析HTML、CSS，构建DOM树和RenderObject树，进行布局和绘制等。
 当界面需要重绘或由于某种操作引发回流时，该线程就会执行。
 要注意的是，GUI渲染线程与JS引擎线程是互斥的，当JS引擎执行时GUI线程会被挂起，GUI更新会被保存在一个队列中等到JS引擎空闲时立即被执行。
@@ -2519,8 +2623,8 @@ will-change
 避免频繁的布局计算和重绘，从而实现更高效的渲染`,
       },
       {
-        question:'防抖/节流',
-        answer:`
+        question: "防抖/节流",
+        answer: `
 防抖:(游戏中回城)
 设定一个时间 在设定定时间内没有再次触发才会执行,如果在设定时间一直触发,就重置这个设定时间,继续等待
 
@@ -2534,7 +2638,7 @@ will-change
 应用:
 浏览器滚动加载事件
 浏览器窗口缩放事件
-`
+`,
       },
       {
         question: "跨域",
@@ -3568,33 +3672,42 @@ Vue.prototype.$login = login.install; // 全局可使用this.$login调用
       {
         question: "设计模式",
         answer: `
+1.工厂
+- 构造函数，更方便的去创建示例
+vue中每个组件都会创建一个当前示例对象
+
+2.单例模式
+- 定义一个类，并生成一个实例，全局仅用这一个
+例：(1).axios 封装-> class HttpRequest{}
+(2).vuex的源码实现
+(3).vue源码响应式Proxy实现中依赖收集，会创建公共的类 ReactiveEffect 来全局收集
+
+3.策略模式
+- 根据不同策略做不同事情，多个if 或者map来简化实现
+
+4.适配器模式
+- 将一种格式匹配成期望的格式
+
+4.装饰器
+- 动态给类或者对象添加扩展功能
+
+5.代理模式
+- 为对象提供一种代理访问，不直接访问元对象，例：vue中的响应式 proxy
+
+6. 观察者
+- 相当于2个对象 (目标对象: notify 观察者: update)
+定义对象之间一对多关系，以便当一个对象状态发生改变其所有依赖对象都能得到通知，例：双向数据绑定，v-model
+
 1. 发布订阅
-- 3个对象
+- 3个对象,订阅者和发布者不互相依赖，中间有管理层（有统一的调度中心）
 
 在发布订阅模式中，事件的发生者（发布者）不需要直接调用事件的处理者（订阅者），而是通过一个「发布-订阅中心」来管理事件的发生和处理。
 具体来说，发布者将事件发布到「发布-订阅中心」中，订阅者可以向「发布-订阅中心」注册事件处理函数，
 当事件发生时，「发布-订阅中心」会将事件通知给所有注册了该事件处理函数的订阅者，订阅者就可以处理该事件了。
+例如：vue中的 eventBus 通过$emit 和 $on 实现发布订阅模式 $off取消监听
 
 发布订阅模式的核心思想是解耦事件的发生和事件的处理，使得事件发生者和事件处理者之间不直接依赖，从而提高程序的灵活性和可维护性。
-使用发布订阅模式可以将事件的发生和处理分开，使得不同的订阅者可以独立处理事件，同时也可以动态地添加或删除订阅者，满足不同的业务需求。
-        
-2. 观察者
-- 2个对象 (目标对象: notify 观察者: update)
-
-3. 单例模式
-- 一个实例
-
-4. 工厂
-- 构造函数
-
-5. 适配器模式
-- axios
-
-6. 策略模式
-- 多个if
-
-7. 代理模式
-`,
+使用发布订阅模式可以将事件的发生和处理分开，使得不同的订阅者可以独立处理事件，同时也可以动态地添加或删除订阅者，满足不同的业务需求。`,
       },
     ],
   },
@@ -3609,4 +3722,4 @@ Vue.prototype.$login = login.install; // 全局可使用this.$login调用
 //   answer: ``,
 // }
 
-window.__exams = exams
+window.__exams = exams;
