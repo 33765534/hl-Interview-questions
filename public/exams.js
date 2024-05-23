@@ -8,18 +8,27 @@ const exams = [
     content: [
       {
         question: "项目难题性能优化",
-        answer: `在华为应用市场付费推广这个项目中，除了负责日常页面模块的开发还付出了大量的时间和精力做性能优化
-首先加载性能上的优化：1.路由懒加载 2.打包文件去掉map文件
-2.图片懒加载
-还会给出修改建议: 延长缓存时间;缩减资源文件大小,推迟下载不必要的资源;保持较低的请求数量和较小的传输大小
-减少网络请求
-对打包后资源进行分析
-大图片进行压缩,小图片使用svg,图片懒加载
-使用HTTP缓存,长期不变的静态文件使用强缓存
-3.使用cdn加速（如果可以按需引入减少所占空间，不能按需的采用CDN外部加载）(vue axios echarts通过配置webpack的externals不打包,真的放到内部CDN引入)
-4.使用 gzip 打包压缩，减少文件体积(打包通过compresion-webpack-plugin和 nignx 服务器开启 gzip 压缩)
-5.使用 Service Worker 进行缓存，提升加载速度 6.使用 keep-alive 缓存组件，减少重复渲染 7.预渲染，依赖 prerender-spa-plugin
-8.防抖节流，减少用户反复点击 9.用户体验上的优化：（1.骨架屏 2.loading 3.使用动画提升用户体验 4.使用 PWA）
+        answer: `在华为应用市场付费推广这个项目中，除了负责日常页面模块的开发,还付出了大量的时间和精力做性能优化
+性能优化原则-->根据经验总结：空间换时间，多使用内存、缓存或者其他方法，减少CPU计算量，减少网络加载耗时
+为了加载更快
+1.减少资源体积：压缩代码，如：
+(1)webpack中mode：‘praduction’模式则是为了生产环境，会开启各种优化，比如压缩代码、混淆变量名等，使得最终的代码更小、运行更快，但是错误和警告信息会被减少或去除。
+(2)使用 gzip 打包压缩，减少文件体积(打包通过compresion-webpack-plugin和 nignx 服务器开启 gzip 压缩)
+(3)打包文件去掉map文件
+2.减少访问次数
+(1)路由懒加载
+(2)推迟下载不必要的资源;保持较低的请求数量和较小的传输大小，从而减少网络请求
+(3)使用HTTP缓存,长期不变的静态文件使用强缓存
+3.使用cdn加速（如果库可以按需引入，则可以减少所占空间，不能按需的采用CDN外部加载）
+(vue axios echarts通过配置webpack的externals不打包,真的放到内部CDN引入)
+4.使用 Service Worker 进行缓存，提升加载速度
+为了渲染更快
+1.css放head，js放body最下面
+2.尽早开始js，可用用DOMContentLoaded触发
+3.懒加载分为(图片:大图片进行压缩,小图片使用svg,图片懒加载)(上滑加载更多)
+4.对DOM查询进行缓存,如使用 keep-alive 缓存组件，减少重复渲染
+5.防抖节流,当用户反复点击时减少请求
+6.用户体验上的优化：（1.骨架屏 2.loading 3.使用动画提升用户体验 4.使用 PWA）
 
 使用http2.0
 http2.0大幅提升了加载性能，相比http1.0增加了多路复用、二进制分帧、header压缩等特性
@@ -493,6 +502,8 @@ ${title("iOS 上视频播放 video 标签时间轴不显示")}
         answer: `
 用 keep-alive 包裹动态组件时，可以实现组件缓存，当组件切换时不会对当前组件进行卸载。
 keep-alive 的中还运用了 LRU(最近最少使用) 算法，选择最近最久未使用的组件予以淘汰。
+
+动态组件<component :is="currentComponent"></component>
 
 实现原理
 在vue的生命周期中，用 keep-alive 包裹的组件在切换时不会进行销毁，而是缓存到内存中并执行 deactivated 钩子函数，命中缓存渲染后会执行 actived 钩子函数。
@@ -1115,12 +1126,9 @@ __proto__(隐式原型)指向创建当前对象的函数的prototype,每个对�
 2.实现数据封装：可以创建类似于面向对象的对象实例，通过闭包来访问和操作
 3.实现回调函数：在异步操作完后执行回调函数
 4.实现函数工厂：创建定制函数，可以生成特定行为或者配置
-在函数外部能够访问到函数内部的变量。通过使用闭包，可以通过在外部调用闭包函数，从而在外部访问到函数内部的变量，可以使用这种方法来创建私有变量。
-使已经运行结束的函数上下文中的变量对象继续留在内存中，因为闭包函数保留了这个变量对象的引用，所以这个变量对象不会被回收
-封装对象的私有属性和私有方法
 
-缺点:
-由于闭包会使得函数中的变量都被保存在内存中，内存消耗很大，所以不能滥用闭包，否则会造成网页的性能问题，在IE中可能导致内存泄露`,
+因为闭包函数保留了这个变量对象的引用，所以这个变量对象不会被回收，因此变量会常驻内存，得不到释放，
+所以不能滥用闭包，否则会造成网页的性能问题，很可能导致内存泄露`,
       },
       {
         question: "Promise",
@@ -1270,6 +1278,8 @@ reduce(callback,initvalue)---接收一个函数作为累加器，callback第一�
       {
         question: "对象继承",
         answer: `
+new Object() 等同于 {} 
+new Object({}) 指定原型为 {} （null的话没有原型）
 原型链的方式来实现继承，缺点是，在包含有引用类型的数据时，会被所有的实例对象所共享，容易造成修改的混乱。还有就是在创建子类型的时候不能向超类型传递参数。
 
 借用构造函数的方式，通过在子类型的函数中调用超类型的构造函数，解决了不能向超类型传递参数 缺点是无法实现函数方法的复用，并且超类型原型定义的方法子类型也不能访问到。
@@ -1341,6 +1351,8 @@ Proxy 的一些方法要求返回 true/false 来表示操作是否成功，比�
 6.取消冒泡事件
   event.stopPropagetion()
 event.preventDefault()阻止默认行为
+e.target.nodeName=='A'获取节点名
+  target.matches(xx)是否满足选择器判断是否触发元素
 不能使用冒泡的事件：scroll、mouseleave、blur、change
 `
       },
@@ -1348,6 +1360,7 @@ event.preventDefault()阻止默认行为
         question: "Map/Set",
         answer: `
 set 和 weakSet 区别
+set 无序的
 Set 允许存储任何类型的唯一值（不能重复），无论是原始值或者是对象引用；
 WeakSet 成员都是弱引用的对象，会被垃圾回收机制回收，可以用来保存DOM节点，不容易造成内存泄漏；
 WeakSet 不可迭代，不能用在 for-of 循环中
@@ -1360,6 +1373,7 @@ Map 能轻易转化为数组（扩展运算符）；weakmap 做不到
 由于 key 随时会被回收，所以 weakmap 的key 不可枚举，相应地也就不能获取 size 等，它能做的事情也就只有 has/get/set/delete 四种操作；map 相对比较丰富，has/get/set/delete 之外，支持 entries/size/foreach/keys/values 等
 
 Map 和 普通Obejct的区别
+Object 无序的 Map是有序结构 
 过去通常用object实现，但是obj只能用字符串作为key，有很大限制，所以出现map，支持任意类型作为key；`,
       },
       {
@@ -1779,6 +1793,13 @@ margin-right 元素自身不会位移，但是会减少自身供css读取的宽�
     type: "HTML",
     content: [
       {
+        question: "onload/DomContentLoaded",
+        answer: `
+window.onload 资源全部加载完才能执行，包括图片
+DomContentLoaded Dom渲染完成即可，图片可能尚未下载
+`,
+      },
+      {
         question: "HTML5新增",
         answer: `
 <header></header>  头部
@@ -1889,6 +1910,38 @@ observer.observe({entryTypes: ["mark", "frame"]});`,
     type: "工程化",
     content: [
       {
+        question: "webpack性能优化",
+        answer: `
+1.babel-loader 开启缓存
+ {
+  test:/\.js$/,
+  use:['babel-loader?cacheDirectory'], // 开启
+  incloude:path.resolve(__dirname,'src') // 明确范围
+ }
+2.IgnorePlugin 避免引入无用模块(直接不引入代码中没有)
+ new Webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
+3.noParse 避免重复打包 如:.min.js 引入但不打包
+ module: {
+   noParse: /\.min\.js$/
+ }
+4.happypack 开启多进程打包,提高构建速度（特别多核CPU）
+ const HappyPack = require('happypack');
+5.DllPlugin 动态链接库插件 提高构建速度
+ DllPlugin 的主要目的是将一些第三方库（如 React、Vue、Lodash 等）分离出来，单独打包成动态链接库
+ DllReferencePlugin 引入dll文件
+ plugins: [
+  // ...
+  new DllPlugin({
+    filename: 'manifest.json',
+    library: '[name]',
+  }),
+  new webpack.DllReferencePlugin({
+    manifest: path.resolve(__dirname, 'dist/manifest.json'),
+  }),
+],
+`
+      },
+      {
         question: "webpack流程",
         answer: `
 初始化参数：从配置文件和 Shell 语句中读取与合并参数，得出最终的参数
@@ -1906,7 +1959,7 @@ observer.observe({entryTypes: ["mark", "frame"]});`,
 输出完成：在确定好输出内容后，根据配置确定输出的路径和文件名，把文件内容写入到文件系统`,
       },
       {
-        question: "wePack五大",
+        question: "webpack五大",
         answer: `
 entry（入口）
 指示 Webpack 从哪个文件开始打包
@@ -2200,8 +2253,26 @@ Demo:
     type: "网络协议",
     content: [
       {
-        question: "HTTP缓存",
+        question: "HTTP强缓存",
         answer: `
+http请求
+   |
+ 有缓存
+   |
+缓存是否过期 ——Y—— 有Etag/lastModeifed ——Y—— 向服务器发http请求带If-Modified-Since/If-None-Match
+   |N                     |N                               |
+读取缓存               向服务器发                           |
+   |                      |                                |
+   |                    服返回 <————200——— 服务器判断缓存是否可用
+   |                      |                                |304
+   |———强缓存———> 页面呈现 <————协商缓存——— 读缓存
+Etag->传给后台if-none-match(资源唯一标识)
+HTTP1.1
+将上次返回的Etag发送给服务器，询问Etag是否有更新，Etag优先级比last-modified更高。
+
+last-modified->传给后台if-modified-since（最后修改时间）
+HTTP1.0
+本地文件最后修改日期，如果本地打开缓存文件，就会造成last-modified被修改
 强缓存(状态码200)
 cache-control
 HTTP1.1 相对时间，max-age,设置强缓存
@@ -2222,15 +2293,7 @@ max-age: 距离请求发起的时间的秒数。
 must-revalidate 缓存过期后的任何情况下都必须重新验证。
 
 协商缓存(状态码304)
-cache-control: no-cache; // 设置协商缓存
-
-Etag/if-none-match
-HTTP1.1
-将上次返回的Etag发送给服务器，询问Etag是否有更新，Etag优先级比last-modified更高。
-
-last-modified/if-modified-since
-HTTP1.0
-本地文件最后修改日期，如果本地打开缓存文件，就会造成last-modified被修改`,
+cache-control: no-cache; // 设置协商缓存`,
       },
       {
         question: "输入URL",
@@ -2275,6 +2338,37 @@ DNS 解析
 
 绘制（painting）
   遍历渲染树，调用paint方法显示内容。`,
+      },
+      {
+        question: "http headers",
+        answer: `
+Request Headers（请求头）包含了客户端向服务器发送请求时的一些信息。常见的请求头：
+1.Accept(/ekspt/):浏览器可接收的数据格式，如 "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,/;q=0.8"
+2. Accept-Encoding：指定客户端可以支持的编码方式，如 "gzip, deflate, br"。
+3. Accept-Language：指定客户端希望使用的语言，如 "en-US,en;q=0.8"。
+4. Connection：指定客户端与服务器之间的连接类型，如 "keep-alive"。
+5. Cookie：包含客户端之前与服务器交互时服务器设置的 Cookie 信息。
+6. Host：指定请求的目标服务器地址和端口
+7. User-Agent：包含客户端的浏览器信息，如 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"。
+8. Referer：指定客户端从哪个页面跳转过来的，通常用于统计和防盗链。
+9. Authorization：包含客户端的认证信息，如 "Bearer "。
+10. Content-Type：指定请求的内容类型，如 "application/x-www-form-urlencoded" 或 "application/json"。
+11. Content-Length：指定请求的内容长度。
+12. Host：指定请求的目标服务器地址和端口。
+13. Range：指定请求的资源范围，如 "bytes=0-99"。
+14. If-Modified-Since：指定客户端认为资源的最后修改时间，服务器会检查资源是否在此时间之后有更新，如果没有更新，则返回 304 Not Modified。
+15. If-None-Match：指定客户端认为资源的唯一标识，服务器会检查资源是否与该标识匹配，如果匹配，则返回 304 Not Modified。
+
+Response Headers（响应头）包含了服务器向客户端发送响应时的一些信息。常见的响应头：
+1. Access-Control-Allow-Origin：指定允许跨域请求的来源，通常用于处理跨域问题。
+2. Access-Control-Allow-Methods：指定允许跨域请求的 HTTP 方法，如 "GET, POST, PUT, DELETE, OPTIONS"。
+3. Access-Control-Allow-Headers：指定允许跨域请求的请求头，如 "Content-Type, Authorization"。
+4. Content-Type：指定响应的内容类型，如 "text/html; charset=utf-8"。
+5. Content-Length：指定响应的内容长度。
+6. Server：包含服务器的信息，如 "Apache/2.4.6 (Red Hat)".
+7. Set-Cookie：包含服务器向客户端设置的 Cookie 信息。
+8. Vary：指定响应的内容 vary 头，用于指定响应的内容根据请求头中的某个字段进行变化。
+9. WWW-Authenticate：指定客户端需要进行认证的类型，如 "Bearer realm=example.com"。`
       },
       {
         question: "HTTP状态码",
@@ -2343,7 +2437,7 @@ CSRF
 CSRF（Cross-site request forgery 跨站请求伪造：）攻击者诱导受害者进入第三方网站，在第三方网站中，向被攻击网站发送跨站请求。
 利用受害者在被攻击网站已经获取的注册凭证，绕过后台的用户验证，达到冒充用户对被攻击的网站执行某项操作的目的。
 避免
-XSRF: 同源检测请求头referer token 验证码 设置cookie Samesite为严格模式
+CSRF: 使用post接口 同源检测请求头referer token 验证码 设置cookie Samesite为严格模式
 
 DDOS
 DDoS(Distributed Denial of Service，分布式拒绝服务攻击)
@@ -2398,7 +2492,9 @@ Get 浏览器限制URL中传送的参数长度，而 POST 不限制长度。
 GET 参数通过 URL 传递，POST 放在 Request body 中
 
 安全性
-Get参数直接暴露在 URL 上，不能用来传递敏感信息。`,
+Get参数直接暴露在 URL 上，不能用来传递敏感信息。
+新增了一些请求方法 delete patch/put 
+`,
       },
       {
         question: "http/https",
@@ -2410,10 +2506,20 @@ HTTP 协议是超文本传输协议，信息是明文传输的，HTTPS 则是具
 HTTP 协议连接很简单，是无状态的；HTTPS 协议是有 SSL 和 HTTP 协议构建的可进行加密传输、身份认证的网络协议，比 HTTP 更加安全。
 
 SSL的实现这些功能主要依赖于三种手段：
-对称加密：采用协商的密钥对数据加密
-非对称加密：实现身份认证和密钥协商
+对称加密：采用协商的密钥对数据加密，一个key同时负责加密解密
+非对称加密：实现身份认证和密钥协商，一对Key，A加密之后，只能用B来解密
+https证书:使用第三方证书或浏览器校验证书
 摘要算法：验证信息的完整性
-数字签名：身份验证`,
+数字签名：身份验证
+
+1.第三方机构得到key/pubkey       2.非对称加密key/pubkey                   3.对称加密
+        C     S                  c            s                          c         s
+        |     |                  |    ->      |                          |   ->    | key
+        |  -> |           pubkey |   <-pubkey | 根据key/pubkey        key|    <-   |
+浏验N告警|  <- |            'abc' |  XXX->     | 解得到‘abc’         key| xxx—> |key
+Y通过                     得到key |   -> <-    | key                     | <-XXX   |
+
+`,
       },
       {
         question: "HTTP1/2/3",
@@ -2647,10 +2753,19 @@ will-change
 同源指的是：协议、端口号、域名必须一致。
 
 解决跨域
+ajax 请求时浏览器要求当前网页和server必须是同源策略
+ajax 核心API 1.xhr=new XMLHttpRequest() 2.xhr.open('GET','/api',true)第三个参数是异步请求false是同步请求
+3.xhr.onreadystatechange=function(){
+  if(xhr.readyState==4){状态(0:尚未调用open 1:open方法被调用 2:send方法被调用 3:下载中 responseText已有部分 4:done下载完成)
+    if(xhr.status==200)
+  }
+}
+4.xhr.send()将请求发送到服务器
+
 CORS
 对于简单请求
 浏览器会直接发出CORS请求，它会在请求的头信息中增加一个Orign字段，该字段用来说明本次请求来自哪个源（协议+端口+域名），
-服务器会根据这个值来决定是否同意这次请求。如果Orign指定的域名在许可范围之内，服务器返回的响应就会多出以下信息头：
+服务器会根据这个值来决定是否同意这次请求。如果Orign指定的域名在许可范围之内，服务器返回的响应就会多出信息头：
 Access-Control-Allow-Origin: http://api.bob.com  // 和Orign一直
 Access-Control-Allow-Credentials: true   // 表示是否允许发送Cookie
 Access-Control-Expose-Headers: FooBar   // 指定返回其他字段的值
