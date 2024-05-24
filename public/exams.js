@@ -723,18 +723,24 @@ Vue3 对 Map、Set做了很多特殊处理，这是因为Proxy无法直接拦截
 Vue3 中允许开发者基于 VNode 实现自定义渲染器（renderer），以便于针对不同平台进行渲染`,
       },
       {
-        question: "模版编译",
+        question: "VUE模版编译",
         answer: `
-vue 的模版编译过程主要如下：template -> ast -> render 函数字符串
+vue 的模版编译过程主要如下：template -> parse __ast___> transform __ast__>gernerate-> render 函数字符串
 
 解析阶段: 调用 parse 方法将 template 转化为 ast（抽象语法树）
   解析过程：利用正则表达式顺序解析模板，当解析到开始标签、闭合标签、文本的时候都会分别执行对应的回调函数，来构造 AST 树
-  AST元素节点总共三种类型：type 为 1表示普通元素、2为表达式、3为纯文本
+  AST元素节点总共三种类型：type 为 1表示普通元素(<a-z 标签)、2为表达式 {{ 、3为纯文本 text
 
-优化阶段: 对静态节点做优化
+优化阶段: 对静态节点做优化 transform(深度优先搜索)
   深度遍历 AST，查看每个子树的节点元素是否为静态节点或者静态节点根。如果为静态节点，给其打一个标记,后续更新渲染可以直接跳过静态节点，优化渲染更新
 
-生成阶段: 将 ast抽象语法树编译成 render 字符串并将静态部分放到 staticRenderFns 中，最后通过 new Function(' render') 生成 render 函数`,
+生成阶段: 将 ast抽象语法树编译成 render 字符串并将静态部分放到 staticRenderFns 中，最后通过 new Function(' render') 生成 render 函数
+render 函数会返回一个虚拟 DOM，然后 通过 patch 方法将虚拟 DOM 渲染成真实 DOM
+大致分为: 1.Object 类型processComponent组件类，创建组件实例对象，setup等，然后递归patch处理子节点
+ 2.string类型 processElement 元素类  直接 createElement 创建元素节点，递归patch处理子节点
+ 3.fragment类型 processFragment 片段类
+ 4.text类型 processText 纯文本类
+`,
       },
       {
         question: "双向绑定",
