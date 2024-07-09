@@ -117,7 +117,17 @@ npm run dev
       },
       {
         question: "在线协同文档",
-        answer: ``
+        answer: `
+        Yjs + Quill
+        Yjs  一个集成 CRDT 算法的同步库，是此次协同文档的核心
+        quill  一个富文本编辑器
+        quill-cursors 一个quill的插件，用于显示多个光标，因为多个用户共同编辑就会有多个光标
+        y-quill  可以理解为他能将yjs和quill融合起来，实现协同
+        y-websocket  一个yjs的库，作用是将数据同步到多个客户端
+
+        协同算法市面上有两种算法：OT(Operational transformation)OT算法是一种支持并发控制的理论框架,至少客户端和服务端是分布式的
+                               CRDT(Conflict-free Replicated Data Type)CRDT是一种数据类型,通常开销较小
+         OT算法通过操作转换来保持一致性，而CRDT则通过设计特定的数据类型来确保在分布式环境下的无冲突复制。选择哪种算法取决于具体的应用需求和系统设计`
       },
       {
         question: "大文件上传",
@@ -609,8 +619,7 @@ vue3为了尽可能的减少移动，采用 贪心 + 二分查找 去找最长�
         answer: `
 在 API 特性方面：
 Composition API：可以更好的逻辑复用和代码组织，同一功能的代码不至于像以前options API一样分散
-
-SFC Composition API语法糖<script setup>
+Composition API的语法糖<script setup>
 
 Teleport传送门(内置组件)：可以让子组件能够在视觉上跳出父组件(如父组件overflow:hidden)
 
@@ -694,6 +703,18 @@ Vue2
 是采用数据劫持结合观察者（发布者-订阅者）模式的方式，通过Object.defineProperty()来劫持各个属性的setter，getter，在数据变动时发布消息给订阅者（watcher），
 触发相应的监听回调来更新DOM
 
+vue2缺点
+Object.defineProperty 是可以监听通过数组下标修改数组的操作，通过遍历每个数组元素的方式
+但是 Vue2 无法监听，原因是性能代码和用户体验不成正比，其次即使监听了，也监听不了数组的原生方法进行操作；
+出于性能考虑，Vue2 放弃了对数组元素的监听，改为对数组原型上的 7 种方法进行劫持；
+push、pop、shift、unshift、splice、sort、reverse这七个数组方法，在Vue2内部重写了所以可以监听到，除此之外可以使用 set()方法，
+Vue.set()对于数组的处理其实就是调用了splice方法
+
+Object.defineProperty 无法检测直接通过 .length 改变数组长度的操作；
+Object.defineProperty 只能监听属性，所以需要对对象的每个属性进行遍历，因为如果对象的属性值还是对象，还需要深度遍历。因为这个api并不是劫持对象本身。
+也正是因为 Object.defineProperty 只能监听属性而不是对象本身，所以对象新增的属性没有响应式；因此新增响应式对象的属性时，需要使用 Set 进行新增；
+不支持 Map、Set 等数据结构
+
 Vue2 响应式的创建、更新流程
 当一个 Vue 实例创建时，vue 会遍历 data 选项的属性，用 Object.defineProperty 为它们设置 getter/setter 并且在内部追踪相关依赖，
 在属性被访问和修改时分别调用 getter 和setter 。
@@ -707,31 +728,13 @@ Vue的 DOM 更新是异步的，当数据变化时，Vue 就会开启一个队�
 而在下一个 事件循环 时，Vue会清空这个队列，并进行必要的 DOM 更新；
 这也就是响应式的数据 for 循环改变了100次视图也只更新一次的原因。
 
-vue2缺点
-Object.defineProperty 是可以监听通过数组下标修改数组的操作，通过遍历每个数组元素的方式
-但是 Vue2 无法监听，原因是性能代码和用户体验不成正比，其次即使监听了，也监听不了数组的原生方法进行操作；
-出于性能考虑，Vue2 放弃了对数组元素的监听，改为对数组原型上的 7 种方法进行劫持；
-
-Object.defineProperty 无法检测直接通过 .length 改变数组长度的操作；
-Object.defineProperty 只能监听属性，所以需要对对象的每个属性进行遍历，因为如果对象的属性值还是对象，还需要深度遍历。因为这个api并不是劫持对象本身。
-也正是因为 Object.defineProperty 只能监听属性而不是对象本身，所以对象新增的属性没有响应式；因此新增响应式对象的属性时，需要使用 Set 进行新增；
-不支持 Map、Set 等数据结构
-
-push、pop、shift、unshift、splice、sort、reverse这七个数组方法，在Vue2内部重写了所以可以监听到，除此之外可以使用 set()方法，
-Vue.set()对于数组的处理其实就是调用了splice方法
 
 Vue3
 Vue3 中为了解决这些问题，使用 Proxy结合Reflect代替Object.defineProperty，
 支持监听对象和数组的变化，
-对象嵌套属性只代理第一层，运行时递归，用到才代理，也不需要维护特别多的依赖关系，性能取得很大进步；
-并且能拦截对象13种方法，动态属性增删都可以拦截，新增数据结构全部支持，
+对象嵌套属性只代理第一层，运行时递归，使用到了对象才代理，也不需要维护特别多的依赖关系，性能比较快；
+并且可以拦截对象13种方法，动态属性增删都可以拦截，新增数据结构也全部支持，
 Vue3 提供了 ref 和 reactive 两个API来实现响应式；
-
-Vue3 响应式对数组的处理
-Vue3 对数组实现代理时，也对数组原型上的一些方法进行了重写；
-原因：
-还比如使用 includes、indexOf,lastindexOf等对数组元素进行查找时，可能是使用代理对象进查找，
-也可能使用原始值进行查找需要重写查找方法，让查找时先去响应式对象中查找，没找到再去原始值中查找；
 
 Vue3 惰性响应式
 Vue2对于一个深层属性嵌套的对象做响应式，就需要递归遍历这个对象，将每一层数据都变成响应式的；
@@ -748,7 +751,13 @@ Vue3 解构丢失响应式
 Vue3 响应式 对 Set、Map 做的处理
 Vue3 对 Map、Set做了很多特殊处理，这是因为Proxy无法直接拦截 Set、Map，因为 Set、Map的方法必须得在它们自己身上调用；Proxy 返回的是代理对象；
 所以 Vue3 在这里的处理是，封装了 toRaw() 方法返回原对象，通过Proxy的拦截，在调用诸如 set、add方法时，在原对象身上调用方法；
-其实还有一个方法是，用Class搞一个子类去继承 Set、Map，然后用子类new的对象就可以通过proxy来代理，而Vue没有采用此方法的原因，猜测是：calss只兼容到 Edge13`,
+其实还有一个方法是，用Class搞一个子类去继承 Set、Map，然后用子类new的对象就可以通过proxy来代理，而Vue没有采用此方法的原因，猜测是：calss只兼容到 Edge13
+
+Vue3 响应式对数组的处理
+Vue3 对数组实现代理时，也对数组原型上的一些方法进行了重写；
+原因：
+还比如使用 includes、indexOf,lastindexOf等对数组元素进行查找时，可能是使用代理对象进查找，
+也可能使用原始值进行查找需要重写查找方法，让查找时先去响应式对象中查找，没找到再去原始值中查找；`,
       },
       {
         question: "虚拟dom",
@@ -790,7 +799,8 @@ render 函数会返回一个虚拟 DOM，然后 通过 patch 方法将虚拟 DOM
       {
         question: "双向绑定",
         answer: `
-vue中双向绑定是一个指令v-model，可以绑定一个动态值到视图，同时视图中变化能改变该值。v-model是语法糖，默认情况下相当于:value和@input。
+vue中双向绑定是一个指令v-model，可以绑定一个动态值到视图，同时视图中变化能改变该值。
+v-model是语法糖，默认情况下相当于:value和@input。
 
 使用v-model可以减少大量繁琐的事件处理代码，提高开发效率，代码可读性也更好
 
